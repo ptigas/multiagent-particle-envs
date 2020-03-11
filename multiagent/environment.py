@@ -4,6 +4,8 @@ from gym.envs.registration import EnvSpec
 import numpy as np
 from multiagent.multi_discrete import MultiDiscrete
 
+import torch
+
 # environment for all agents in the multiagent world
 # currently code assumes that no agents will be created/destroyed at runtime!
 class MultiAgentEnv(gym.Env):
@@ -306,20 +308,20 @@ class BatchMultiAgentEnv(gym.Env):
     def observation_space(self):
         return self.env_batch[0].observation_space
 
-    def step(self, action_n, time):
+    def step(self, action_n):
         obs_n = []
         reward_n = []
         done_n = []
         info_n = {'n': []}
         i = 0
         for env in self.env_batch:
-            obs, reward, done, _ = env.step(action_n[i:(i+env.n)], time)
+            obs, reward, done, _ = env.step(action_n[i:(i+env.n)])
             i += env.n
             obs_n += obs
             # reward = [r / len(self.env_batch) for r in reward]
             reward_n += reward
             done_n += done
-        return obs_n, reward_n, done_n, info_n
+        return torch.tensor(obs_n), torch.tensor(reward_n), torch.tensor(done_n), info_n
 
     def reset(self):
         obs_n = []
